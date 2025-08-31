@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\SKP;
+use App\Models\Laporan;
 use App\Models\Employees;
-use App\Models\Activities;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -17,141 +20,57 @@ class PegawaiController extends Controller
 {
     public function index () {
         $user = Auth::user();
-        if($user->is_atasan == 1){
-            $query_get_bawahan = "SELECT COUNT(*) AS TOTAL FROM employees WHERE NIP_ATASAN = '{$user->nip}'";
-        }else {
-            $query_get_bawahan = "SELECT 0 AS TOTAL";
-        }
-        $query_activities = "SELECT COUNT(*) AS TOTAL FROM activities LEFT OUTER JOIN employees ON activities.EMPLOYEE_ID = employees.ID WHERE employees.NIP = '{$user->nip}'";
-        $query_activities_approve = "SELECT COUNT(*) AS TOTAL FROM activities LEFT OUTER JOIN employees ON activities.EMPLOYEE_ID = employees.ID WHERE employees.NIP = '{$user->nip}' AND STATUS IS NOT NULL";
-        $query_activities_delay = "SELECT COUNT(*) AS TOTAL FROM activities LEFT OUTER JOIN employees ON activities.EMPLOYEE_ID = employees.ID WHERE employees.NIP = '{$user->nip}' AND STATUS IS NULL";
+        // if($user->is_atasan == 1){
+        //     $query_get_bawahan = "SELECT COUNT(*) AS TOTAL FROM employees WHERE NIP_ATASAN = '{$user->nip}'";
+        // }else {
+        //     $query_get_bawahan = "SELECT 0 AS TOTAL";
+        // }
+        // $query_activities = "SELECT COUNT(*) AS TOTAL FROM activities LEFT OUTER JOIN employees ON activities.EMPLOYEE_ID = employees.ID WHERE employees.NIP = '{$user->nip}'";
+        // $query_activities_approve = "SELECT COUNT(*) AS TOTAL FROM activities LEFT OUTER JOIN employees ON activities.EMPLOYEE_ID = employees.ID WHERE employees.NIP = '{$user->nip}' AND STATUS IS NOT NULL";
+        // $query_activities_delay = "SELECT COUNT(*) AS TOTAL FROM activities LEFT OUTER JOIN employees ON activities.EMPLOYEE_ID = employees.ID WHERE employees.NIP = '{$user->nip}' AND STATUS IS NULL";
 
-        $get_bawahan = DB::select($query_get_bawahan);
-        $get_activities = DB::select($query_activities);
-        $get_activities_delay = DB::select($query_activities_delay);
-        $get_activities_approve = DB::select($query_activities_approve);
-        return view('dashboard', compact('get_bawahan','get_activities','get_activities_delay','get_activities_approve'));
+        // $get_bawahan = DB::select($query_get_bawahan);
+        // $get_activities = DB::select($query_activities);
+        // $get_activities_delay = DB::select($query_activities_delay);
+        // $get_activities_approve = DB::select($query_activities_approve);
+        return view('dashboard');
     }
 
-    public function listSKP(Request $request){
-        $user = Auth::user();
-        // if($request->input()){
-        //     $year = $request->input('year');
-        //     $query = SKP::whereNull('is_deleted')->where('created_by', $user->nip);
-        //     if ($year != 'all') {
-        //         $skp = $query->where('year', $year)->get();
-        //     }
-        //     else{
-        //         $skp = $query->get();
-        //     }   
-        // }
-        //     $skp = SKP::whereNull('is_deleted')->where('created_by', $user->nip)->get();
+    public function listTL(){
+        // $laporan = Laporan::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->with('skp')->get();
+        $laporan = Laporan::latest()->whereNull('is_deleted')->get();
+        // $skp = SKP::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->get();
+        return view('pegawai/tindaklanjut/tindaklanjut', compact('laporan'));
+    }
 
-        $query = SKP::query();
-        if ($request->has('year') && $request->year != '') {
-            $query->where('year', $request->year);
-        }
-
-        $skp = $query->whereNull('is_deleted')->where('created_by', $user->nip)->get();
-
-        $monthNames = [
-            1 => 'Januari',
-            2 => 'Februari',
-            3 => 'Maret',
-            4 => 'April',
-            5 => 'Mei',
-            6 => 'Juni',
-            7 => 'Juli',
-            8 => 'Agustus',
-            9 => 'September',
-            10 => 'Oktober',
-            11 => 'November',
-            12 => 'Desember',
-        ];
-
-        $availableYears = DB::table('skp')
-        // ->selectRaw('YEAR(created_at) as year')
-        ->distinct()
-        // ->orderByRaw('YEAR(created_at)')
-        ->pluck('year');
-        return view('pegawai/skp', compact('skp','monthNames','availableYears'));
+        public function viewTL($laporan, Request $request){
+        // $laporan = Laporan::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->with('skp')->get();
+        $report = Laporan::findOrFail($laporan);
+        // $skp = SKP::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->get();
+        return view('pegawai/tindaklanjut/create-tindaklanjut', compact('report'));
     }
 
     
-    public function storeSKP (Request $request){
+
+    public function updateTL (Request $request, $id){
+        
         $validator = Validator::make($request->all(), [
-            'name_skp' => 'required',
-            'month' => 'required',
-            'year' => 'required',
+            'report_deadline' => 'required',
+            'phone_number_opd' => 'required'
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
         
-        $employee = Employees::where('nip',Auth::user()->nip)->first();
-        if (!$employee) {
-            return redirect()->back()->with('error' ,'Data kepegawaian anda tidak ada!');
-            }
-        $time_now = Carbon::now();
-        $checkSKP = SKP::
-        where('month', $request->month)
-        ->where('year', $request->year)
-        ->where('created_by', $employee->nip)
-        ->first();
+       $tindakLanjut =  Laporan::findOrFail($id);
 
-        if ($checkSKP) {
-            return redirect()->back()->with('error' ,'Sudah input SKP di bulan dan tahun tersebut!');
-        }
-
-
-       $skp =  SKP::create([
-            'employee_id' => $employee->id,
-            'name_skp' => $request->name_skp,
-            'month' => $request->month,
-            'year' => $request->year,
-            'created_at' => $time_now,
-            'created_by' => Auth::user()->nip
-        ]);
-
-
-        return redirect()->back()->with('success' ,'Record inserted successfully.');
-
-    }
-
-
-    public function updateSKP (Request $request, $id){
-        
-        $validator = Validator::make($request->all(), [
-            'name_skp' => 'required',
-            'month' => 'required',
-            'year' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-        
-       $skp =  SKP::findOrFail($id);
-
-    //    $employee = Employees::where('nip', Auth::user()->nip)->first();
-    //    if (!$employee) {
-    //     return redirect()->back()->with('error' ,'Data kepegawaian anda tidak ada!');
-    //     }
-    //    $checkSKP = SKP::
-    //    where('month', $request->month)
-    //    ->where('year', $request->year)
-    //    ->where('created_by', $employee->nip)
-    //    ->first();
-
-    //    if ($checkSKP) {
-    //        return redirect()->back()->with('error' ,'Sudah ada SKP di bulan dan tahun tersebut!');
-    //    }
        
-       $skp->update([
-            'name_skp' => $request->name_skp,
-            'month' => $request->month,
-            'year' => $request->year,
+       $tindakLanjut->update([
+            'report_deadline' => $request->report_deadline,
+            'phone_number_opd' => $request->phone_number_opd,
+            'followup_status' => 'Proses',
+            'sending_evidence' => $path,
             'updated_at' => Carbon::now()
         ]);
 
@@ -169,61 +88,54 @@ class PegawaiController extends Controller
         return redirect()->back()->with('success' ,'Record deleted successfully.');
     }  
 
+     public function getFileTokenAttribute(): string
+    {
+        return strtr(Crypt::encryptString((string) $this->getKey()), '+/', '-_');
+    }
+
+
     public function listActivity(){
-        $activities = Activities::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->with('skp')->get();
-        $skp = SKP::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->get();
-        return view('pegawai/activity', compact('activities', 'skp'));
+        // $laporan = Laporan::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->with('skp')->get();
+        $laporan = Laporan::latest()->whereNull('is_deleted')->get();
+        // $skp = SKP::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->get();
+        return view('pegawai/laporan', compact('laporan'));
     }
 
     
     public function storeActivity (Request $request){
         
         $validator = Validator::make($request->all(), [
-            'skp_id' => 'required',
-            'activity' => 'required',
-            'description' => 'required',
-            'start_time' => ['required', 'date_format:H:i', 'before:end_time', 'after_or_equal:08:00'],
-            'end_time'   => ['required', 'date_format:H:i', 'after:start_time', 'before_or_equal:17:00'],
-        ],[
-            'start_time.required' => 'Jam mulai wajib diisi.',
-            'start_time.date_format' => 'Format jam mulai harus HH:MM.',
-            'start_time.before' => 'Jam mulai harus sebelum jam selesai.',
-            'start_time.after_or_equal' => 'Jam mulai minimal pukul 08:00.',
-            'end_time.required' => 'Jam selesai wajib diisi.',
-            'end_time.date_format' => 'Format jam selesai harus HH:MM.',
-            'end_time.after' => 'Jam selesai harus setelah jam mulai.',
-            'end_time.before_or_equal' => 'Jam selesai maksimal pukul 17:00.',
+            'report_number' => 'required',
+            'report_name' => 'required',
+            'report_date' => 'required',
+            'team_lead'   => 'required',
+            'phone_number_teamlead'   => 'required',
+            'file_name' => 'required|file|max:5600|mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg',
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
-        
-        $employee = Employees::where('nip',Auth::user()->nip)->first();
-        if (!$employee) {
-            return redirect()->back()->with('error' ,'Data kepegawaian anda tidak ada!');
+        $report = Laporan::where('report_number',$request->report_number)->first();
+        if ($report) {
+            return redirect()->back()->with('error' ,'Data Laporan sudah ada!');
             }
-        // $time_now = Carbon::now();
-        // $checkActivity = SKP::where('employee_id', $employee->id)
-        // ->where('created_at', $request->created_at)
-        // ->first();
 
-        // if ($checkActivity) {
-        //     return redirect()->back()->with('error' ,'');
+        $file = $request->file('file_name');
+        $original = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $ext = $file->getClientOriginalExtension();
+        $nameFile = Str::slug($original).'-'.now()->format('YmdHis').'.'.$ext;
 
-        // }
-
-
-       $activities =  Activities::create([
-            'employee_id' => $employee->id,
-            'skp_id' => $request->skp_id,
-            'activity' => $request->activity,
-            'description' => $request->description,
-            'created_by' => Auth::user()->nip,
-            'created_name' => Auth::user()->username,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'nip_atasan'=> $employee->nip_atasan,
+        $path = $file->storeAs('laporan', $nameFile, 'public');
+        
+       $report =  Laporan::create([
+            'user_id' => Auth::user()->id,
+            'report_number' => $request->report_number,
+            'report_name' => $request->report_name,
+            'report_date' => $request->report_date,
+            'team_lead' => $request->team_lead,
+            'phone_number_teamlead' => $request->phone_number_teamlead,
+            'link_file' => $path,
             'created_at' => Carbon::now()
         ]);
 
@@ -233,37 +145,62 @@ class PegawaiController extends Controller
     }
 
 
+    public function reportFile(Laporan $laporan){
+
+
+    if (! $laporan->link_file || ! Storage::disk('public')->exists($laporan->link_file)) {
+        abort(404, 'File tidak ditemukan.');
+    }
+
+    return Storage::disk('public')->response($laporan->link_file);
+    }
+
+
     public function updateActivity (Request $request, $id){
-        
-        $validator = Validator::make($request->all(), [
-            'skp_id' => 'required',
-            'activity' => 'required',
-            'description' => 'required',
-            'start_time' => ['required', 'before:end_time', 'after_or_equal:08:00'],
-            'end_time'   => ['required', 'after:start_time', 'before_or_equal:17:00'],
-        ],[
-            'start_time.required' => 'Jam mulai wajib diisi.',
-            'start_time.before' => 'Jam mulai harus sebelum jam selesai.',
-            'start_time.after_or_equal' => 'Jam mulai minimal pukul 08:00.',
-            'end_time.required' => 'Jam selesai wajib diisi.',
-            'end_time.after' => 'Jam selesai harus setelah jam mulai.',
-            'end_time.before_or_equal' => 'Jam selesai maksimal pukul 17:00.',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
                 
-        $activities = Activities::findOrFail($id);
+     $report = Laporan::findOrFail($id);
 
-       $activities->update([
-            'skp_id' => $request->skp_id,
-            'activity' => $request->activity,
-            'description' => $request->description,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'updated_at' => Carbon::now()
-        ]);
+     $validated = $request->validate([
+        'report_number'          => 'required|string|max:100',
+        'report_name'            => 'required|string|max:255',
+        'report_date'            => 'required|date',
+        'team_lead'              => 'nullable|string|max:255',
+        'phone_number_teamlead'  => 'required|string|max:30',
+        'file_name_edit'         => 'nullable|file|max:5120|mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg',
+    ]);
+
+
+
+
+    dd($request->file('file_name_edit'));
+
+        $path = $report->link_file;
+
+   
+        if($file = $request->file('file_name_edit')){     
+        $original = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $ext      = $file->getClientOriginalExtension();
+        $nameFile = Str::slug($original) . '-' . now()->format('YmdHis') . '.' . $ext;
+
+        $path = $file->storeAs('laporan', $nameFile, 'public');
+
+        if ($report->link_file && Storage::disk('public')->exists($report->link_file)) {
+            Storage::disk('public')->delete($report->link_file);
+        }
+    }
+    
+
+
+    $report->update([
+        'user_id'               => Auth::user()->id,
+        'report_number'         => $validated['report_number'],
+        'report_name'           => $validated['report_name'],
+        'report_date'           => $validated['report_date'],
+        'team_lead'             => $validated['team_lead'] ?? null,
+        'phone_number_teamlead' => $validated['phone_number_teamlead'],
+        'link_file'             => $path,
+        'updated_at'            => Carbon::now(),
+    ]);
 
 
         return redirect()->back()->with('success' ,'Record updated successfully.');
@@ -271,7 +208,7 @@ class PegawaiController extends Controller
     }
 
     public function softDeleteActivity ($id){
-        $activity = Activities::findOrFail($id);
+        $activity = Laporan::findOrFail($id);
         $activity->update([
             'is_deleted' => 1,
         ]);
@@ -279,15 +216,6 @@ class PegawaiController extends Controller
         return redirect()->back()->with('success' ,'Record deleted successfully.');    
     }  
     
-    public function filterActivity(){
-
-    }
-
-    
-    public function filterSKP(){
-
-    }
-
 
   
     public function listRecap(Request $request){

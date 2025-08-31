@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('atasan_bawahan', function (Blueprint $table) {
+        Schema::create('master_instansi', function (Blueprint $table) {
             $table->id();
-            $table->string('activity_id');
-            $table->string('master_approver_id');
-            $table->string('nip_atasan');
-            $table->string('nama_atasan');
-            $table->string('nama');
-            $table->string('nip');
+            $table->string('nama_instansi', 255)->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('atasan_bawahan');
+        Schema::dropIfExists('master_instansi');
     }
 };

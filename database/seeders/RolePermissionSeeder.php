@@ -27,14 +27,14 @@ class RolePermissionSeeder extends Seeder
 
         // Membuat role Admin dan memberikan semua permission
         $admin = Role::create(['name' => 'admin']);
-        $admin->givePermissionTo(Permission::all());
+        // $admin->givePermissionTo(Permission::all());
 
         // Membuat role Librarian dan memberikan permission khusus
         $employee = Role::create(['name' => 'pegawai']);
-        $employee->givePermissionTo(['create activity', 'update profile', 'create skp', 'manage password']);
+        // $employee->givePermissionTo(['create activity', 'update profile', 'create skp', 'manage password']);
 
-        $superior = Role::create(['name' => 'atasan']);
-        $superior->givePermissionTo(['name' => 'update profile', 'approve']);
+        $superior = Role::create(['name' => 'inspektorat']);
+        // $superior->givePermissionTo(['name' => 'update profile', 'approve']);
 
     }
 }

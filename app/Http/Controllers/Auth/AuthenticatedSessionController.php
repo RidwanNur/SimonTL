@@ -32,13 +32,13 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $validator = Validator::make($request->all(), [
-            'nip' => 'required|numeric',
+            'username' => 'required|string',
             'password' => 'min:6|required',
         ]);
         if ($validator->fails()) {
             return redirect('login')->withInput()->withErrors($validator);
         }
-        $user = User::where('nip', $request->nip)->first();
+        $user = User::where('username', $request->username)->first();
 
         if ($user) {
             if (Hash::check($request->password, $user->password)) {
@@ -46,7 +46,7 @@ class AuthenticatedSessionController extends Controller
                     if ($user->hasRole('admin')) {
                         Auth::login($user);
                         return redirect()->route('dashboard')->with('success','Welcome back! '.$user->username);
-                    } elseif ($user->hasRole('atasan') && $user->is_atasan == 1) {
+                    } elseif ($user->hasRole('inspektorat')) {
                         Auth::login($user);
                         return redirect()->route('atasan.dashboard')->with('success','Welcome back! '.$user->username);
                     } elseif ($user->hasRole('pegawai')) {

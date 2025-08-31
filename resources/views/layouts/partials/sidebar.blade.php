@@ -32,36 +32,34 @@
           <li class="nav-item">
             <a href="{{ url(Auth::user()->getRoleNames()[0],'pegawai') }}">
               <i class="fas fa-pen-square"></i>
-              <p>Pegawai</p>
+              <p>User</p>
+            </a>
+          </li>
+           <li class="nav-item">
+            <a href="{{ url(Auth::user()->getRoleNames()[0],'pegawai') }}">
+              <i class="fas fa-ellipsis-h"></i>
+              <p>TL Laporan</p>
             </a>
           </li>
           @endif
-          @if (Auth::user()->getRoleNames()[0] == 'atasan')   
+          @if (Auth::user()->getRoleNames()[0] == 'pegawai')
           <li class="nav-item">
-            <a href="{{ url(Auth::user()->getRoleNames()[0],'approval') }}">
+            <a href="{{ url(Auth::user()->getRoleNames()[0],'laporan') }}">
               <i class="fas fa-pen-square"></i>
-              <p>Approve Aktivitas</p>
-            </a>
-          </li>
-          @endif
-          @if (Auth::user()->getRoleNames()[0] == 'atasan' || Auth::user()->getRoleNames()[0] == 'pegawai')
-          <li class="nav-item">
-            <a href="{{ url(Auth::user()->getRoleNames()[0],'aktivitas') }}">
-              <i class="fas fa-pen-square"></i>
-              <p>Aktivitas</p>
+              <p>Daftar Laporan</p>
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ url(Auth::user()->getRoleNames()[0],'skp') }}">
+            <a href="{{ url(Auth::user()->getRoleNames()[0],'tindakLanjut') }}">
               <i class="fas fa-file"></i>
-              <p>SKP</p>
+              <p>Tindak Lanjut</p>
             </a>
           </li>
           @endif
           <li class="nav-item">
             <a href="{{ url(Auth::user()->getRoleNames()[0],'rekap') }}">
               <i class="far fa-chart-bar"></i>
-              <p>Rekap Aktivitas</p>
+              <p>Rekap Laporan</p>
             </a>
           </li>
         </ul>

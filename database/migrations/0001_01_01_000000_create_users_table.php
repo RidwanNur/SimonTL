@@ -13,16 +13,10 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-
-            // Relasi ke tabel roles
-            $table->unsignedBigInteger('role_id');
-            
-            $table->string('username')->unique();
-            $table->string('nip')->unique();
-            $table->string('password');
-            $table->string('status');
-            $table->string('is_atasan');
-            
+            $table->string('username', 255)->nullable();
+            $table->string('password', 255)->nullable();
+            $table->string('instansi', 255)->nullable(); // sesuai schema asli (varchar)
+            $table->integer('status')->nullable();        
             $table->timestamps();
 
             // Definisikan foreign key

@@ -1,0 +1,127 @@
+
+    :root{
+      --bg1:#2a0834; --bg2:#3f0c4a; --glass:#ffffff1a; --glass-brd:#ffffff33;
+      --accent1:#ff7a3d; --accent2:#ff2f6a; --text:#f3eef8; --muted:#cbbadf;
+    }
+
+    html, body { height:100%; }
+    body{
+      font-family: "Public Sans", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at -10% -10%, #5a1a86 0%, transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, #6a2b96 0%, transparent 55%),
+        radial-gradient(900px 600px at 20% 110%, #4a146f 0%, transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
+    }
+
+    /* Decorative lines/shapes */
+    .lines::before, .lines::after{
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background:
+        linear-gradient(transparent 40%, #ffffff0c 40% 60%, transparent 60%) 15% 20% / 6px 70% no-repeat,
+        linear-gradient(transparent 45%, #ffffff10 45% 55%, transparent 55%) 35% 10% / 6px 80% no-repeat,
+        radial-gradient(60px 60px at 75% 35%, #ffffff12, #ffffff05 60%, transparent 61%) no-repeat,
+        radial-gradient(120px 120px at 85% 80%, #ffffff10, #ffffff03 60%, transparent 61%) no-repeat;
+      filter: blur(0.2px);
+    }
+
+    .auth-wrap{ min-height:100dvh; display:grid; place-items:center; }
+    .panel{
+      width:min(1100px, 94vw);
+      border-radius:24px;
+      box-shadow: 0 40px 100px #00000055, 0 8px 30px #00000066 inset;
+      position:relative;
+      background:#22062eaa;
+      overflow:hidden;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+    @media (max-width: 992px){ .grid{ grid-template-columns:1fr; } }
+
+    /* Left welcome */
+    .welcome{
+      padding: clamp(28px, 6vw, 64px);
+      position:relative;
+    }
+    .logo-mark{
+      width:28px; height:28px; border-radius:6px; background:#ffffff; opacity:.9;
+      box-shadow: 16px 0 0 #ffffff, 16px 0 0 8px #ffffff10 inset;
+      margin-bottom: 28px;
+    }
+    .welcome h1{
+      font-weight:700; letter-spacing:.2px; line-height:1.05;
+      font-size: clamp(36px, 6.5vw, 72px);
+      margin-bottom: 18px;
+    }
+    .welcome p{
+      color: var(--muted);
+      max-width: 520px;
+      font-size: clamp(14px, 2.2vw, 16px);
+    }
+    .btn-learn{
+      margin-top:22px; border:none; border-radius:999px; padding:12px 20px;
+      background-image: linear-gradient(90deg, var(--accent1), var(--accent2));
+      color:#fff; font-weight:600;
+      box-shadow: 0 8px 24px #ff2f6a33;
+    }
+
+    /* Right login (glass) */
+    .signin{
+      padding: clamp(28px, 5.5vw, 56px);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .glass{
+      width: 100%;
+      max-width: 440px;
+      border-radius: 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-brd);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: clamp(22px, 4.5vw, 38px);
+      box-shadow: 0 10px 40px #00000050 inset, 0 14px 40px #00000025;
+    }
+    .glass h3{
+      font-weight:700; margin-bottom: 20px; text-align:left;
+    }
+
+    .form-control{
+      border-radius: 999px !important;
+      background:#ffffff1a; border:1px solid #ffffff30; color:#fff;
+      padding: 12px 16px;
+    }
+    .form-control::placeholder{ color:#e9dff933; }
+
+    .btn-gradient{
+      border:none; border-radius:999px; width:100%;
+      padding:12px 18px; font-weight:700;
+      background-image: linear-gradient(90deg, var(--accent1), var(--accent2));
+      color:#fff; box-shadow: 0 12px 28px #ff2f6a40;
+    }
+
+    .socials a{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:38px; height:38px; border-radius:50%;
+      border:1px solid #ffffff33; color:#fff; text-decoration:none; margin-right:10px;
+      background:#ffffff10;
+    }
+
+    /* Fix KaiAdmin/Bootstrap margins if loaded */
+    .mb-4{ margin-bottom:1rem !important; }
+
+
+    .toggle-password {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #ccc;
+}
+.toggle-password:hover {
+  color: #fff;
+}

@@ -39,14 +39,16 @@ Route::middleware('auth','verified')->group(function () {
 Route::middleware('auth','verified')->group(function () {
     Route::middleware(['role:pegawai'])->prefix('pegawai')->group(function () {
     Route::get('/dashboard', [PegawaiController::class, 'index'])->name('pegawai.dashboard');
-    Route::get('/aktivitas', [PegawaiController::class, 'listActivity'])->name('pegawai.listActivity');
-    Route::post('/aktivitas/create', [PegawaiController::class, 'storeActivity'])->name('pegawai.storeActivity');
+    Route::get('/laporan', [PegawaiController::class, 'listActivity'])->name('pegawai.listActivity');
+    Route::get('/laporan/{laporan}/file', [PegawaiController::class, 'reportFile'])->name('pegawai.reportFile');
+    // Route::get('/laporan/{token}/file', [PegawaiController::class, 'reportFile'])->name('pegawai.reportFile');
+    Route::post('/laporan/create', [PegawaiController::class, 'storeActivity'])->name('pegawai.storeActivity');
     Route::put('/aktivitas/update/{id}', [PegawaiController::class, 'updateActivity'])->name('pegawai.updateActivity');
     Route::put('/aktivitas/delete/{id}', [PegawaiController::class, 'softDeleteActivity'])->name('pegawai.softDeleteActivity');
     Route::get('/aktivitas/filter', [PegawaiController::class, 'storeActivity'])->name('pegawai.filterActivity');
-    Route::get('/skp', [PegawaiController::class, 'listSKP'])->name('pegawai.listSKP');
-    Route::post('/skp/create', [PegawaiController::class, 'storeSKP'])->name('pegawai.storeSKP');
-    Route::put('/skp/update/{id}', [PegawaiController::class, 'updateSKP'])->name('pegawai.updateSKP');
+    Route::get('/tindakLanjut', [PegawaiController::class, 'listTL'])->name('pegawai.listTL');
+    Route::get('/tindakLanjut/view/{laporan}', [PegawaiController::class, 'viewTL'])->name('pegawai.viewTL');
+    Route::put('/tindakLanjut/update/{id}', [PegawaiController::class, 'updateTL'])->name('pegawai.updateTL');
     Route::put('/skp/delete/{id}', [PegawaiController::class, 'softDeleteSKP'])->name('pegawai.softDeleteSKP');
     Route::get('/skp/filter', [PegawaiController::class, 'filterSKP'])->name('pegawai.filterSKP');
     Route::get('/rekap', [PegawaiController::class, 'listRecap'])->name('pegawai.listRecap');
@@ -56,7 +58,7 @@ Route::middleware('auth','verified')->group(function () {
 });
 
 Route::middleware('auth','verified')->group(function () {
-    Route::middleware(['role:atasan'])->prefix('atasan')->group(function () {
+    Route::middleware(['role:inspektorat'])->prefix('inspektorat')->group(function () {
     Route::get('/dashboard', [AtasanController::class, 'index'])->name('atasan.dashboard');
     Route::get('/approval', [AtasanController::class, 'listApproval'])->name('atasan.listApproval');
     Route::get('/approval-filter', [AtasanController::class, 'filterListApprActivity'])->name('atasan.filterListApprActivity');

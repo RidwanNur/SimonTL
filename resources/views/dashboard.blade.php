@@ -32,7 +32,7 @@
                 @endrole
                 @role('pegawai')
                 <p class="card-category">Bawahan</p>
-                <h4 class="card-title">{{ $bawahan[0]->TOTAL ?? 0  }}</h4>
+                <h4 class="card-title">------</h4>
                 @endrole
               </div>
             </div>
@@ -54,7 +54,7 @@
               <div class="numbers">
                 @role('pegawai')
                 <p class="card-category">Aktivitas</p>
-                <h4 class="card-title">{{ $get_activities[0]->TOTAL ?? 0  }}</h4>
+                <h4 class="card-title">----</h4>
                 @endrole
                 @role('atasan')
                 <p class="card-category">Aktivitas</p>
@@ -83,7 +83,7 @@
               <div class="numbers">
                 @role('pegawai')
                 <p class="card-category">Aktivitas Sudah Disetujui</p>
-                <h4 class="card-title">{{ $get_activities_approve[0]->TOTAL ?? 0  }}</h4>
+                <h4 class="card-title">------</h4>
                 @endrole
                 @role('atasan')
                 <p class="card-category">Aktivitas Sudah Disetujui</p>
@@ -112,7 +112,7 @@
               <div class="numbers">
                 @role('pegawai')
                 <p class="card-category">Aktivitas Belum Disetujui</p>
-                <h4 class="card-title">{{ $get_activities_delay[0]->TOTAL ?? 0 }}</h4>
+                <h4 class="card-title">-------</h4>
                 @endrole
                 @role('atasan')
                 <p class="card-category">Aktivitas Belum Disetujui</p>

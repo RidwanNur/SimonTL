@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Facades\Date;
 
 class UserSeeder extends Seeder
 {
@@ -22,10 +24,12 @@ class UserSeeder extends Seeder
     	      // insert data ke table pegawai menggunakan Faker
     		$user = User::create([
     			'username' => $faker->name,
-    			'nip' => $faker->numberBetween(10000,15000),
-    			'password' => Hash::make('123456')
+    			'password' => Hash::make('123456'),
+    			'instansi' => 'BPKP',
+                'status' => 1,
+                'created_at' => Carbon::now()
     		]);
-            $user->assignRole('atasan');
+            $user->assignRole('pegawai');
     	}
     }
     

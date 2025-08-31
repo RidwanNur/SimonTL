@@ -8,16 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Activities extends Model
+class Laporan extends Model
 {
     use HasFactory, Notifiable, HasRoles;
 
 
-    protected $table='activities';
+    protected $table='laporan_hasil_pengawasan';
     protected $guarded=['id'];
 
-    public function skp()
-    {
-        return $this->belongsTo(SKP::class, 'skp_id', 'id');
-    }
+    protected $casts = [
+    'report_deadline' => 'date',
+];
 }

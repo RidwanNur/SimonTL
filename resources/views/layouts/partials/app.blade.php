@@ -30,6 +30,13 @@
   <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}" />
   <link rel="stylesheet" href="{{ asset('assets/css/plugins.min.css') }}" />
   <link rel="stylesheet" href="{{ asset('assets/css/kaiadmin.min.css') }}" />
+  <link href="https://unpkg.com/filepond@^4/dist/filepond.min.css" rel="stylesheet"/>
+  <link href="https://unpkg.com/filepond-plugin-image-preview@^4/dist/filepond-plugin-image-preview.min.css" rel="stylesheet"/>
+<style>
+  .filepond--panel-root{border:2px dashed #d8dbe0;border-radius:14px}
+  .filepond--drop-label{color:#6c6f7b}
+  .filepond--credits{display:none}
+</style>
 </head>
 <body>
   <div class="wrapper">
@@ -39,6 +46,7 @@
 
     <div class="main-panel">
       <!-- Header (import partial) -->
+      @php use Illuminate\Support\Facades\Storage; @endphp
       @include('layouts.partials.navbar')
       <!-- End Header -->
 
@@ -60,6 +68,8 @@
   <script src="{{ asset('assets/js/core/jquery-3.7.1.min.js') }}"></script>
   <script src="{{ asset('assets/js/core/popper.min.js') }}"></script>
   <script src="{{ asset('assets/js/core/bootstrap.min.js') }}"></script>
+
+
 
   <!-- jQuery Scrollbar -->
   <script src="{{ asset('assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
@@ -93,6 +103,9 @@
   <!-- Kaiadmin DEMO methods, don't include it in your project! -->
   <script src="{{ asset('assets/js/setting-demo.js') }}"></script>
   {{-- <script src="{{ asset('assets/js/demo.js') }}"></script> --}}
+  <script src="https://unpkg.com/filepond@^4/dist/filepond.min.js"></script>
+<script src="https://unpkg.com/filepond-plugin-file-validate-size@^2/dist/filepond-plugin-file-validate-size.min.js"></script>
+<script src="https://unpkg.com/filepond-plugin-file-validate-type@^1/dist/filepond-plugin-file-validate-type.min.js"></script>
 
 @stack('scripts')
 
