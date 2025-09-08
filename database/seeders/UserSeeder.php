@@ -29,7 +29,7 @@ class UserSeeder extends Seeder
                 'status' => 1,
                 'created_at' => Carbon::now()
     		]);
-            $user->assignRole('pegawai');
+            $user->assignRole('inspektorat');
     	}
     }
     

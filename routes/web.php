@@ -23,14 +23,18 @@ Route::get('/', function () {
 Route::middleware('auth','verified')->group(function () {
     Route::middleware(['role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
-    Route::get('/pegawai', [AdminController::class, 'listEmployee'])->name('admin.listEmployee');
-    Route::post('/pegawai/create', [AdminController::class, 'storeEmployee'])->name('admin.storeEmployee');
-    Route::put('/pegawai/update/{id}', [AdminController::class, 'updateEmployee'])->name('admin.updateEmployee');
-    Route::put('/pegawai/delete/{id}', [AdminController::class, 'softDeleteEmployee'])->name('admin.softDeleteEmployee');
+    Route::get('/user', [AdminController::class, 'listEmployee'])->name('admin.listEmployee');
+    Route::post('/user/create', [AdminController::class, 'storeUser'])->name('admin.storeUser');
+    Route::put('/user/update/{id}', [AdminController::class, 'updateEmployee'])->name('admin.updateEmployee');
+    Route::put('/user/delete/{id}', [AdminController::class, 'softDeleteEmployee'])->name('admin.softDeleteEmployee');
+    Route::get('/assignTL', [AdminController::class, 'listTL'])->name('admin.listTL');
+    Route::put('/assignTL/update/{id}', [AdminController::class, 'updateTL'])->name('admin.updateTL');
+    Route::get('/tindakLanjut/edit/{laporan}', [PegawaiController::class, 'viewTL'])->name('pegawai.viewTL');
+    Route::put('/tindakLanjut/update/{id}', [AtasanController::class, 'updateTL'])->name('opd.updateTL');
     Route::get('/rekap', [AdminController::class, 'listRecap'])->name('admin.listRecap');
     Route::get('/rekap/excel/{month}', [AdminController::class, 'ExcelRecap'])->name('admin.ExcelRecap');
     Route::get('/profile', [AdminController::class, 'profile'])->name('profile.view');
-    Route::get('/get-atasan/{wilayah}', [AdminController::class, 'getAtasan'])->name('admin.getAtasan');
+    Route::get('/get-instansi/{instansi}', [AdminController::class, 'getInstansi'])->name('admin.getInstansi');
 
 });
 });
@@ -47,8 +51,11 @@ Route::middleware('auth','verified')->group(function () {
     Route::put('/aktivitas/delete/{id}', [PegawaiController::class, 'softDeleteActivity'])->name('pegawai.softDeleteActivity');
     Route::get('/aktivitas/filter', [PegawaiController::class, 'storeActivity'])->name('pegawai.filterActivity');
     Route::get('/tindakLanjut', [PegawaiController::class, 'listTL'])->name('pegawai.listTL');
-    Route::get('/tindakLanjut/view/{laporan}', [PegawaiController::class, 'viewTL'])->name('pegawai.viewTL');
+    Route::post('/tindakLanjut/create', [PegawaiController::class, 'storeTL'])->name('pegawai.storeTindakLanjut');
+    Route::get('/tindakLanjut/edit/{laporan}', [PegawaiController::class, 'viewTL'])->name('pegawai.viewTL');
     Route::put('/tindakLanjut/update/{id}', [PegawaiController::class, 'updateTL'])->name('pegawai.updateTL');
+    Route::post('/tindakLanjut/send/{id}', [PegawaiController::class, 'sendTL'])->name('pegawai.sendTL');
+    Route::put('/tindaklanjut/delete/{id}', [PegawaiController::class, 'softDeleteTL'])->name('pegawai.softDeleteTL');
     Route::put('/skp/delete/{id}', [PegawaiController::class, 'softDeleteSKP'])->name('pegawai.softDeleteSKP');
     Route::get('/skp/filter', [PegawaiController::class, 'filterSKP'])->name('pegawai.filterSKP');
     Route::get('/rekap', [PegawaiController::class, 'listRecap'])->name('pegawai.listRecap');
@@ -58,8 +65,13 @@ Route::middleware('auth','verified')->group(function () {
 });
 
 Route::middleware('auth','verified')->group(function () {
-    Route::middleware(['role:inspektorat'])->prefix('inspektorat')->group(function () {
+    Route::middleware(['role:opd'])->prefix('opd')->group(function () {
     Route::get('/dashboard', [AtasanController::class, 'index'])->name('atasan.dashboard');
+    Route::get('/tindakLanjut', [AtasanController::class, 'listTL'])->name('opd.listTL');
+    Route::get('/tindakLanjut/edit/{laporan}', [AtasanController::class, 'viewTL'])->name('opd.viewTL');
+    Route::put('/tindakLanjut/update/{id}', [AtasanController::class, 'updateTL'])->name('opd.updateTL');
+    // Route::get('/tindakLanjut/edit/{laporan}', [AtasanController::class, 'viewTL'])->name('opd.viewTL');
+    // Route::post('/tindakLanjut/send/{id}', [PegawaiController::class, 'sendTL'])->name('opd.sendTL');
     Route::get('/approval', [AtasanController::class, 'listApproval'])->name('atasan.listApproval');
     Route::get('/approval-filter', [AtasanController::class, 'filterListApprActivity'])->name('atasan.filterListApprActivity');
     Route::get('/approval/view', [AtasanController::class, 'viewOneActivity'])->name('atasan.viewOneActivity');

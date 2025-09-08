@@ -7,7 +7,7 @@
         <div class="page-inner">
           <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
             <div>
-              <h3 class="fw-bold mb-3">Pegawai</h3>
+              <h3 class="fw-bold mb-3">DATA USER</h3>
             </div>
             <div class="ms-md-auto py-2 py-md-0">
               <label>{{ \Carbon\Carbon::now()->locale('id')->translatedFormat('l, j F Y') }}</label>
@@ -20,11 +20,10 @@
                 <div class="card">
                   <div class="card-header">
                     <div class="d-flex align-items-center">
-                      <h4 class="card-title">Data Pegawai</h4>
                       <button class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal"
                         data-bs-target="#addRowModal">
                         <i class="fa fa-plus"></i>
-                        Tambah Pegawai
+                        Tambah User
                       </button>
                     </div>
                   </div>
@@ -37,37 +36,43 @@
                           <div class="modal-header border-0">
                             <h5 class="modal-title">
                               <span class="fw-mediumbold"> Tambah</span>
-                              <span class="fw-light"> Pegawai </span>
+                              <span class="fw-light"> User </span>
                             </h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" action="close">
                               <span aria-hidden="true">&times;</span>
                             </button>
                           </div>
                           <div class="modal-body">
-                            <form action="{{ route('admin.storeEmployee') }}" method="POST">
+                            <form action="{{ route('admin.storeUser') }}" method="POST">
                                 @csrf
                               <div class="row">
                                 <div class="col-sm-12">
                                   <div class="form-group">
-                                    <label for="">NIP</label>
-                                    <input id="" type="text" name="nip" class="form-control" placeholder="Isi NIP Pegawai" />
+                                    <label for="">Username</label>
+                                    <input id="" type="text" name="username" class="form-control" placeholder="Isi Username" />
                                   </div>
                                 </div>
                                 <div class="col-sm-12">
                                   <div class="form-group">
-                                    <label for="">Nama pegawai</label>
-                                    <input id="" type="text" name="name" class="form-control"
-                                      placeholder="Isi nama lengkap pegawai"></input>
+                                    <label for="">Nama Instansi</label>
+                                      <select name="instansi" class="form-select" placeholder="Isi asal Instansi">
+                                        <option selected>Pilih Instansi User</option>
+                                        @foreach($opds as $item => $opd)
+                                        <option value="{{ $opd->nama_instansi }}">
+                                          {{ $opd->nama_instansi }}
+                                        </option>
+                                      @endforeach
+                                    </select>
                                   </div>
                                 </div>
                                 <div class="col-sm-12">
                                   <div class="form-group">
-                                    <label for="">Jabatan</label>
-                                    <input id="" type="text" name="position" class="form-control"
-                                      placeholder="Isi jabatan pegawai"></input>
+                                    <label for="">No. HP</label>
+                                    <input id="" type="text" name="no_hp" class="form-control"
+                                      placeholder="Isi No HP"></input>
                                   </div>
                                 </div>
-                                <div class="col-sm-12">
+                                {{-- <div class="col-sm-12">
                                   <div class="form-group">
                                     <label>Wilayah Kerja</label>
                                     <select id="wilayah_kerja" type="" name="region" class="form-select" placeholder="Sesuaikan SKP">
@@ -79,8 +84,8 @@
                                       @endforeach
                                     </select>
                                   </div>
-                                </div>
-                                <div class="col-sm-12">
+                                </div> --}}
+                                {{-- <div class="col-sm-12">
                                   <div class="form-group">
                                     <label>Nama Atasan</label>
                                     <select id="atasan" type="" name="nip_atasan" class="form-select" placeholder="Sesuaikan SKP">
@@ -92,7 +97,7 @@
                                     @endforeach
                                     </select>
                                   </div>
-                                </div>
+                                </div> --}}
                               </div>
                             </div>
                             <div class="modal-footer border-0">
@@ -114,32 +119,32 @@
                         <thead>
                           <tr>
                             <th>No</th>
-                            <th>NIP</th>
-                            <th>Nama Pegawai</th>
-                            <th>Jabatan</th>
-                            <th>Wilayah Kerja</th>
-                            <th>Nama Atasan</th>
+                            <th>Username</th>
+                            <th>Instansi</th>
+                            <th>Status</th>
                             <th style="width: 10%">Aksi</th>
                           </tr>
                         </thead>
 
                         <!-- Isi Tabel -->
                         <tbody>
-                            @foreach ($employees as $index => $employee)
+                            @foreach ($users as $index => $user)
                           <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $employee->nip }}</td>
-                            <td>{{ $employee->name }}</td>
-                            <td>{{ $employee->position }}</td>
-                            <td>{{ $employee->region }}</td>
-                            <td>{{ $employee->nama_atasan }}</td>
+                            <td>{{ $user->username }}</td>
+                            <td>{{ $user->instansi }}</td>
+                            @if ($user->status == 1)
+                                <td>Active</td>
+                            @else
+                              <td>Inactive</td>
+                            @endif
                             <td>
                               <div class="form-button-action">
-                                <button type="button" data-bs-toggle="modal" data-bs-target="#editSKPModal{{ $employee->id }}" title=""
+                                <button type="button" data-bs-toggle="modal" data-bs-target="#editSKPModal{{ $user->id }}" title=""
                                     class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task">
                                     <i class="fa fa-edit"></i>
                                   </button>
-                                <button type="button"  onclick="confirmDelete({{ $employee->id }})"
+                                <button type="button"  onclick="confirmDelete({{ $user->id }})"
                                     class="btn btn-link btn-danger">
                                     <i class="fa fa-times"></i>
                                   </button>
@@ -147,49 +152,72 @@
                             </td>
                           </tr>
 
-                          <div class="modal fade" id="editSKPModal{{ $employee->id }}" tabindex="-1" aria-labelledby="editSKPModalLabel{{ $employee->id }}" aria-hidden="true">
+                          <div class="modal fade" id="editSKPModal{{ $user->id }}" tabindex="-1" aria-labelledby="editSKPModalLabel{{ $user->id }}" aria-hidden="true">
                             <div class="modal-dialog">
                             <div class="modal-content">
                                 
                                 <!-- Header Modal -->
                                 <div class="modal-header">
-                                <h5 class="modal-title" id="editSKPModalLabel{{ $employee->id }}">Edit Pegawai #{{ $employee->id }}</h5>
+                                <h5 class="modal-title" id="editSKPModalLabel{{ $user->id }}">Edit Pegawai #{{ $user->id }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 
                                 <!-- Form Edit -->
                                 <div class="modal-body">
-                                <form action="{{ route('admin.updateEmployee', $employee->id) }}" method="POST">
+                                <form action="{{ route('admin.updateEmployee', $user->id) }}" method="POST">
                                     @csrf
                                     @method('PUT') 
                                     <div class="row">
                                       <div class="col-sm-12">
                                         <div class="form-group">
-                                          <label for="">NIP</label>
-                                          <input id="" type="text" name="nip" class="form-control" placeholder="Isi NIP Pegawai" value="{{ $employee->nip }}"/>
+                                          <label for="">Username</label>
+                                          <input id="" type="text" name="username" class="form-control" placeholder="Isi Username" value="{{ $user->username }}"/>
                                         </div>
                                       </div>
+                                        <div class="col-sm-12">
+                                          <div class="form-group">
+                                            <label for="">Nama Instansi</label>
+                                            @php
+                                              $current = trim((string) old('instansi', $user->instansi)); // nilai tersimpan / old()
+                                              $master  = collect($opds)->pluck('nama_instansi')->map(fn($v) => trim((string) $v));
+                                            @endphp
+
+                                            <select name="instansi" class="form-select">
+                                              <option value="" disabled {{ $current === '' ? 'selected' : '' }}>
+                                                Pilih Instansi User
+                                              </option>
+
+                                              {{-- Jika nilai tersimpan tidak ada di master, tetap tampilkan sebagai opsi terpilih --}}
+                                              @if($current !== '' && !$master->contains(fn($v) => mb_strtolower($v) === mb_strtolower($current)))
+                                                <option value="{{ $current }}" selected>
+                                                  {{ $current }} (tidak ada di master)
+                                                </option>
+                                              @endif
+
+                                              @foreach ($opds as $opd)
+                                                @php $val = trim((string) $opd->nama_instansi); @endphp
+                                                <option value="{{ $val }}"
+                                                  {{ mb_strtolower($current) === mb_strtolower($val) ? 'selected' : '' }}>
+                                                  {{ $opd->nama_instansi }}
+                                                </option>
+                                              @endforeach
+                                            </select>
+                                          </div>
+                                        </div>
                                       <div class="col-sm-12">
                                         <div class="form-group">
-                                          <label for="">Nama pegawai</label>
-                                          <input id="" type="text" name="name" class="form-control"
-                                            placeholder="Isi nama lengkap pegawai" value="{{ $employee->name }}"></input>
+                                          <label for="">No HP</label>
+                                          <input id="" type="text" name="no_hp" class="form-control"
+                                            placeholder="Isi No HP" value="{{ $user->no_hp }}"></input>
                                         </div>
                                       </div>
-                                      <div class="col-sm-12">
-                                        <div class="form-group">
-                                          <label for="">Jabatan</label>
-                                          <input id="" type="text" name="position" class="form-control"
-                                            placeholder="Isi jabatan pegawai" value="{{ $employee->position }}"></input>
-                                        </div>
-                                      </div>
-                                      <div class="col-sm-12">
+                                      {{-- <div class="col-sm-12">
                                         <div class="form-group">
                                           <label>Wilayah Kerja</label>
                                           <select id="wilayah_kerja_edit" type="" name="region" class="form-select" placeholder="Sesuaikan SKP">
                                               <option selected>Pilih wilayah kerja pegawai</option>
                                               @foreach($workRegion as $item => $region)
-                                              <option value="{{ $region->name }}" {{ $employee->region == $region->name ? 'selected' : '' }}>
+                                              <option value="{{ $region->name }}" {{ $user->region == $region->name ? 'selected' : '' }}>
                                                 {{ $region->name }}
                                               </option>
                                             @endforeach
@@ -202,13 +230,13 @@
                                           <select id="atasan_edit" type="" name="nip_atasan" class="form-select" placeholder="Sesuaikan SKP">
                                             <option selected>Pilih atasan wilayah kerja</option>
                                             @foreach($atasan as $item => $atasanRegion)
-                                            <option value="{{ $atasanRegion->nip }}" {{ $employee->nip_atasan == $atasanRegion->nip ? 'selected' : '' }}>
+                                            <option value="{{ $atasanRegion->nip }}" {{ $user->nip_atasan == $atasanRegion->nip ? 'selected' : '' }}>
                                               {{ $atasanRegion->name }}
                                             </option>
                                           @endforeach
                                           </select>
                                         </div>
-                                      </div>
+                                      </div> --}}
                                     </div>
                                   </div>
                                 
@@ -225,8 +253,8 @@
                                 <!-- End Form Edit -->
         
                                                     <!-- Form DELETE -->
-                            <form id="form-delete-{{ $employee->id }}" 
-                                action="{{ route('admin.softDeleteEmployee', $employee->id) }}" 
+                            <form id="form-delete-{{ $user->id }}" 
+                                action="{{ route('admin.softDeleteEmployee', $user->id) }}" 
                                 method="POST" 
                                 style="display: none;">
                             @csrf
@@ -273,7 +301,7 @@
 
 <script>
     $(document).ready(function() {
-        $('#wilayah_kerja,#wilayah_kerja_edit').on('change', function() {
+        $('#asal_instansi,#wilayah_kerja_edit').on('change', function() {
             var wilayah = $(this).val();
             if (wilayah) {
                 $.ajax({

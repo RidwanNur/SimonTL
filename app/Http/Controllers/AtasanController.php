@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Activities;
-use App\Models\Employees;
 use Carbon\Carbon;
-
 use App\Models\SKP;
+use App\Models\Laporan;
+
+use App\Models\Employees;
+use App\Models\Activities;
+use Illuminate\Support\Str;
+use App\Models\TindakLanjut;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -18,35 +22,157 @@ class AtasanController extends Controller
 {
     public function index (){
         $user = Auth::user();
-        if($user->is_atasan == 1){
-            $query_get_bawahan = "SELECT COUNT(*) AS TOTAL FROM employees WHERE NIP_ATASAN = '{$user->nip}'";
-        }else {
-            $query_get_bawahan = "SELECT 0 AS TOTAL";
+
+        return view('dashboard');
+    }
+
+
+    public function listTL(){
+        // $laporan = Laporan::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->with('skp')->get();
+        $tl = TindakLanjut::latest()->whereNull('is_deleted')->where('followup_status', 2)->get();
+        $laporan = Laporan::latest()->whereNull('is_deleted')->get(); 
+
+        // $skp = SKP::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->get();
+        return view('pegawai/tindaklanjut/tindaklanjut', compact('tl','laporan'));
+    }
+
+    public function viewTL($laporan, Request $request){
+        // $laporan = Laporan::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->with('skp')->get();
+        $report = TindakLanjut::findOrFail($laporan);
+        $link_fileLaporan = Laporan::where('report_number', $report->report_number)
+            ->whereNull('is_deleted')
+            ->latest('created_at')
+            ->first();
+
+        // $skp = SKP::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->get();
+        return view('pegawai/tindaklanjut/create-tindaklanjut', compact('report', 'link_fileLaporan'));
+    }
+
+    public function updateTL (Request $request, $id){
+        
+        $validator = Validator::make($request->all(), [
+            'tl_description' => 'required',
+            'tl_document' => 'nullable|file|max:5120|mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
-        $query_activities = "SELECT COUNT(*) AS TOTAL FROM activities WHERE NIP_ATASAN = '{$user->nip}'";
-        $query_activities_approve = "SELECT COUNT(*) AS TOTAL FROM activities WHERE NIP_ATASAN = '{$user->nip}' AND STATUS IS NOT NULL";
-        $query_activities_delay = "SELECT COUNT(*) AS TOTAL FROM activities WHERE NIP_ATASAN = '{$user->nip}' AND STATUS IS NULL";
+        
+       $tindakLanjut =  TindakLanjut::findOrFail($id);
 
-        $bawahan = DB::select($query_get_bawahan);
-        $atasan_activity = DB::select($query_activities);
-        $atasan_activity_approve = DB::select($query_activities_approve);
-        $atasan_activity_delay= DB::select($query_activities_delay);
-        return view('dashboard', compact('bawahan','atasan_activity','atasan_activity_approve','atasan_activity_delay'));
+        $data = [
+            'tl_description'  => $request->tl_description,
+            'followup_status'   => 3,
+        ];
+
+
+    if ($request->hasFile('tl_document')) {
+        $file     = $request->file('tl_document');
+        $original = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $ext      = $file->getClientOriginalExtension();
+        $nameFile = Str::slug($original) . '-' . now()->format('YmdHis') . '.' . $ext;
+
+        // Simpan ke storage/app/public/tindaklanjut/...
+        $path = $file->storeAs('tindaklanjut', $nameFile, 'public');
+
+        // Hapus file lama jika ada
+        if ($tindakLanjut->tl_document && Storage::disk('public')->exists($tindakLanjut->tl_document)) {
+            Storage::disk('public')->delete($tindakLanjut->tl_document);
+        }
+
+        // Set path baru ke kolom
+        $data['tl_document'] = $path;
+        }
+
+         $tindakLanjut->update($data);
+
+        // if (filled($tindakLanjut->phone_number_opd)) {
+        // try {
+        //     $this->sendTL($tindakLanjut->id);
+        //     return back()->with('success', 'Data tersimpan & notifikasi WA terkirim.');
+        // } catch (\Throwable $e) {
+        //     report($e);
+        //     return back()->with('warning', 'Data tersimpan, tetapi pengiriman WA gagal.');
+        // }
+        //  }
+
+
+        return redirect()->back()->with('success' ,'Record updated successfully.');
+
     }
 
-    public function listApproval(){
-        $activities = Activities::whereNull('is_deleted')->where('nip_atasan', Auth::user()->nip)->with('skp')->get();
-        $skp = SKP::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->get();
-        return view('atasan.approval-activity', compact('activities', 'skp'));
+        public function sendTL ($id){
+        
+            $tl = TindakLanjut::findOrFail($id);
+
+            // URL file bukti (jika ada)
+            $evidenceUrl = $tl->tl_document
+            ? Storage::disk('public')->url($tl->tl_document)
+            : null;
+            
+            $to = $this->normalizeMsisdn($tl->phone_number_opd);
+
+
+            $message = "*Pemberitahuan Tindak Lanjut*\n"
+                    . "No Laporan: {$tl->report_number}\n"
+                    . "Nama Laporan: {$tl->report_name}\n"
+                    . "Deadline: " . Carbon::parse($tl->report_dateline)->format('d/m/Y'). "\n\n"
+                    . "Mohon tindak lanjut dan konfirmasi penerimaan.\n"
+                    . "Bukti kirim: ".($evidenceUrl ?: '-')."\n\n"
+                    . "— Sistem Pengawasan";
+
+            $payload = [
+                'to'            => $to,
+                'type'          => $evidenceUrl ? 'media' : 'text',
+                'template'      => 'tl-followup-v1',
+                'message'       => $message,
+                'media_url'     => $evidenceUrl,
+                'media_caption' => "Bukti tindak lanjut #{$tl->report_number}",
+                'meta' => [
+                    'laporan_id'      => $tl->id,
+                    'dateline'        => Carbon::parse($tl->report_dateline)->format('d/m/Y'),
+                    'idempotency_key' => "tl-{$tl->id}-".now()->format('YmdHis'),
+                ],
+                'callback_url' => config('services.wa.callback_url'),
+            ];
+
+            dd($payload);
+
+            $resp = Http::withToken(config('services.wa.token'))
+                ->acceptJson()
+                ->asJson()
+                ->withHeaders(['X-Idempotency-Key' => $payload['meta']['idempotency_key']])
+                ->post(rtrim(config('services.wa.endpoint'), '/').'/api/wa/send', $payload);
+
+            if ($resp->failed()) {
+                report(new \Exception('WA send failed: '.$resp->body()));
+                return back()->with('warning', 'Data tersimpan, tetapi pengiriman WA gagal.');
+            }
+
+            $result = $resp->json();
+            
+            Tindak_Lanjut_Log::Create([
+                'user_id' => Auth::user()->id,
+                'wa_status'     => $result['status'] ?? 'queued',
+                'wa_message_id' => $result['message_id'] ?? null,
+                'wa_sent_at'    => now(),
+            ]);
+
+            return back()->with('success', 'Data tersimpan & notifikasi WA terkirim.');
+
     }
 
-    public function filterListApprActivity(){
+    private function normalizeMsisdn(string $phone): string
+{
+    $p = preg_replace('/\D+/', '', $phone);
+    if (\Illuminate\Support\Str::startsWith($p, '0'))  return '+62'.substr($p, 1);
+    if (\Illuminate\Support\Str::startsWith($p, '62')) return '+'.$p;
+    return \Illuminate\Support\Str::startsWith($phone, '+') ? $phone : '+'.$p;
+}
 
-    }
 
-    public function viewOneActivity(Request $request, $id){
 
-    }
 
     public function ApproveActivity(Request $request, $id){
                 

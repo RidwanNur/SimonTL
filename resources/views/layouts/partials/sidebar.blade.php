@@ -30,13 +30,13 @@
           </li>
           @if (Auth::user()->getRoleNames()[0] == 'admin')   
           <li class="nav-item">
-            <a href="{{ url(Auth::user()->getRoleNames()[0],'pegawai') }}">
+            <a href="{{ url(Auth::user()->getRoleNames()[0],'user') }}">
               <i class="fas fa-pen-square"></i>
               <p>User</p>
             </a>
           </li>
            <li class="nav-item">
-            <a href="{{ url(Auth::user()->getRoleNames()[0],'pegawai') }}">
+            <a href="{{ url(Auth::user()->getRoleNames()[0],'assignTL') }}">
               <i class="fas fa-ellipsis-h"></i>
               <p>TL Laporan</p>
             </a>
@@ -49,6 +49,14 @@
               <p>Daftar Laporan</p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="{{ url(Auth::user()->getRoleNames()[0],'tindakLanjut') }}">
+              <i class="fas fa-file"></i>
+              <p>Tindak Lanjut</p>
+            </a>
+          </li>
+          @endif
+          @if (Auth::user()->getRoleNames()[0] == 'opd')
           <li class="nav-item">
             <a href="{{ url(Auth::user()->getRoleNames()[0],'tindakLanjut') }}">
               <i class="fas fa-file"></i>

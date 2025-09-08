@@ -28,7 +28,7 @@
                 @endrole
                 @role('admin')
                 <p class="card-category">Total Pegawai</p>
-                <h4 class="card-title">{{ $total_employee[0]->TOTAL ?? 0  }}</h4>
+                <h4 class="card-title">--</h4>
                 @endrole
                 @role('pegawai')
                 <p class="card-category">Bawahan</p>
@@ -56,13 +56,13 @@
                 <p class="card-category">Aktivitas</p>
                 <h4 class="card-title">----</h4>
                 @endrole
-                @role('atasan')
+                @role('opd')
                 <p class="card-category">Aktivitas</p>
-                <h4 class="card-title">{{ $atasan_activity[0]->TOTAL ?? 0  }}</h4>
+                <h4 class="card-title">----</h4>
                 @endrole
                 @role('admin')
                 <p class="card-category">Aktivitas Disetujui</p>
-                <h4 class="card-title">{{ $total_activity_appr[0]->TOTAL ?? 0  }}</h4>
+                <h4 class="card-title">-------</h4>
                 @endrole
               </div>
             </div>
@@ -85,13 +85,13 @@
                 <p class="card-category">Aktivitas Sudah Disetujui</p>
                 <h4 class="card-title">------</h4>
                 @endrole
-                @role('atasan')
+                @role('opd')
                 <p class="card-category">Aktivitas Sudah Disetujui</p>
-                <h4 class="card-title">{{ $atasan_activity_approve[0]->TOTAL ?? 0  }}</h4>
+                <h4 class="card-title">----------------</h4>
                 @endrole
                 @role('admin')
                 <p class="card-category">Aktivitas Belum Disetujui</p>
-                <h4 class="card-title">{{ $total_activity_delay[0]->TOTAL ?? 0  }}</h4>
+                <h4 class="card-title">-------</h4>
                 @endrole
               </div>
             </div>
@@ -114,9 +114,9 @@
                 <p class="card-category">Aktivitas Belum Disetujui</p>
                 <h4 class="card-title">-------</h4>
                 @endrole
-                @role('atasan')
+                @role('opd')
                 <p class="card-category">Aktivitas Belum Disetujui</p>
-                <h4 class="card-title">{{ $atasan_activity_delay[0]->TOTAL ?? 0 }}</h4>
+                <h4 class="card-title">--------------</h4>
                 @endrole
               </div>
             </div>
@@ -125,7 +125,7 @@
       </div>
     </div>
   </div>
-
+{{-- 
   @role('admin')
   <div class="table-responsive">
     <table id="add-row" class="display table table-striped table-hover">
@@ -154,7 +154,7 @@
       </tbody>
     </table>
   </div>
-  @endrole
+  @endrole --}}
 @endsection
 
 @push('scripts')

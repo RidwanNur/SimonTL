@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\User;
-use App\Models\Approver;
-use App\Models\Employees;
-use App\Models\Activities;
-use App\Models\Work_Region;
+use App\Models\Laporan;
+use App\Models\TindakLanjut;
 use Illuminate\Http\Request;
+use App\Models\MasterInstansi;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -20,145 +19,183 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 class AdminController extends Controller
 {
     public function index () {
-        $employee = "SELECT COUNT(*) AS TOTAL FROM employees"; 
-        $query_activities_approve = "SELECT COUNT(*) AS TOTAL FROM activities WHERE STATUS IS NOT NULL";
-        $query_activities_delay = "SELECT COUNT(*) AS TOTAL FROM activities WHERE STATUS IS NULL";
-        $query_last_activity = "SELECT activities.CREATED_AT AS TANGGAL, employees.NIP, activities.CREATED_NAME AS NAMA_PEGAWAI, activities.ACTIVITY, activities.DESCRIPTION FROM activities LEFT OUTER JOIN employees ON activities.EMPLOYEE_ID = employees.ID ORDER BY activities.CREATED_AT DESC LIMIT 5";
+        // $employee = "SELECT COUNT(*) AS TOTAL FROM employees"; 
+        // $query_activities_approve = "SELECT COUNT(*) AS TOTAL FROM activities WHERE STATUS IS NOT NULL";
+        // $query_activities_delay = "SELECT COUNT(*) AS TOTAL FROM activities WHERE STATUS IS NULL";
+        // $query_last_activity = "SELECT activities.CREATED_AT AS TANGGAL, employees.NIP, activities.CREATED_NAME AS NAMA_PEGAWAI, activities.ACTIVITY, activities.DESCRIPTION FROM activities LEFT OUTER JOIN employees ON activities.EMPLOYEE_ID = employees.ID ORDER BY activities.CREATED_AT DESC LIMIT 5";
 
 
-        $total_employee = DB::select($employee);
-        $total_activity_appr = DB::select($query_activities_approve);
-        $total_activity_delay = DB::select($query_activities_delay);
-        $last_activity = DB::select($query_last_activity);
+        // $total_employee = DB::select($employee);
+        // $total_activity_appr = DB::select($query_activities_approve);
+        // $total_activity_delay = DB::select($query_activities_delay);
+        // $last_activity = DB::select($query_last_activity);
 
-        return view('dashboard', compact('total_employee','last_activity','total_activity_appr','total_activity_delay'));
+        return view('dashboard');
     }
 
     public function listEmployee (){
-            $employees = Employees::whereNull('is_deleted')->get();
-            $workRegion = Work_Region::all();
-            $atasan = Employees::whereNotNull('region')->whereNull('is_deleted')->get();
-            return view('admin.pegawai', compact('employees', 'workRegion','atasan'));   
+            $users = User::where('status', 1)->WhereNull('is_deleted')->get();
+            $opds = MasterInstansi::all();
+            // $atasan = Employees::whereNotNull('region')->whereNull('is_deleted')->get();
+            return view('admin.pegawai', compact('users', 'opds'));   
         
     }
 
-        public function getAtasan($wilayah)
+        public function getInstansi($instansi)
         {
-            $atasan = Employees::where('region', $wilayah)
-                            ->whereNotNull('position') 
-                            ->pluck('name', 'nip'); 
+            $instansi  = MasterInstansi::all();
 
-            return response()->json($atasan);
+            return response()->json($instansi);
         }
 
-    public function storeEmployee (Request $request){
+    public function storeUser (Request $request){
         
         $validator = Validator::make($request->all(), [
-            'nip' => 'required|numeric',
-            'name' => 'required',
-            'region' => 'required',
-            'position' => 'required',
-            'nip_atasan' => 'required'
+            'username' => 'required',
+            'instansi' => 'required',
+            'no_hp' => 'required'
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $checkNIP = Employees::where('nip', $request->nip)->first();
-        if ($checkNIP) {
+        $checkUser = User::where('username', $request->username)->first();
+        if ($checkUser) {
             return redirect()->back()->with([
                 'code' => 409,
                 'status' => 'Error',
-                'message' => 'NIP Sudah terdaftar!'
+                'message' => 'User Sudah Ada!'
             ], 409);
         }
 
-        $atasanName = Employees::where('nip', $request->nip_atasan)->first();
-
+        
+        if($request->instansi == 'BPKP'){
         $user = User::create([
-            'username' => $request->name,
-            'nip' => $request->nip,
+            'username' => $request->username,
+            'instansi' => $request->instansi,
             'password' => Hash::make('123456'),
+            'no_hp' => $request->no_hp,
             'status' => 1,
             'created_at' => Carbon::now(),
         ]);
 
         $user->assignRole('pegawai');
-
-        $atasan = User::where('nip', $request->nip_atasan)->first();
-        if($atasan && $atasan->hasRole('pegawai')){
-            $atasan->syncRoles(['atasan']);
-            $atasan->update([
-                'is_atasan' => 1,
-                'updated_at' => Carbon::now(),
-            ]);
+            
         }
-        // return $atasan->getRoleNames();
-       Employees::create([
-            'user_id' => $user->id,
-            'nip' => $request->nip,
-            'name' => $request->name,
-            'region' => $request->region,
-            'position' => $request->position,
-            'nip_atasan' => $request->nip_atasan,
-            'nama_atasan' => $atasanName->name,
+        else {
+            $user = User::create([
+            'username' => $request->username,
+            'instansi' => $request->instansi,
+            'password' => Hash::make('123456'),
+            'no_hp' => $request->no_hp,
+            'status' => 1,
             'created_at' => Carbon::now(),
+       
         ]);
-
+        $user->assignRole('opd');
+        }
 
         return redirect()->back()->with('success' ,'Record inserted successfully.');
 
     }
 
     public function softDeleteEmployee($id){
-        $employee = Employees::findOrFail($id);
-        $employee->update([
+        $user = User::findOrFail($id);
+        // return $user;
+        $user->update([
             'is_deleted' => 1,
         ]);
+
 
         return redirect()->back()->with('success' ,'Record deleted successfully.');
     }  
 
     public function updateEmployee(Request $request, $id){
 
-        $validator = Validator::make($request->all(), [
-            'nip' => 'required|numeric',
-            'name' => 'required',
-            'region' => 'required',
-            'nip_atasan' => 'required',
-            'position' => 'required'
+            $validator = Validator::make($request->all(), [
+            'username' => 'required',
+            'instansi' => 'required',
+            'no_hp' => 'required'
         ]);
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $employee = Employees::findOrFail($id);
-        $atasanName = Employees::where('nip', $request->nip_atasan)->first();
-        $employee->update([
-            'nip' => $request->nip,
-            'name' => $request->name,
-            'region' => $request->region,
-            'position' => $request->position,
-            'nip_atasan' => $request->nip_atasan,
-            'nama_atasan' => $atasanName->name,
-            'created_at' => Carbon::now(),
+        $users = User::findOrFail($id);
+        $userUpdate = [
+            'username' => $request->username,
+            'instansi' => $request->instansi,
+            'no_hp' => $request->no_hp,
+            'updated_at' => Carbon::now()
+        ];
+
+        $users->update($userUpdate);
+        return redirect()->back()->with('success' ,'Record updated successfully.');
+
+    }
+
+
+        public function listTL(){
+        // $laporan = Laporan::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->with('skp')->get();
+        $tl = TindakLanjut::latest()->whereNull('is_deleted')->where('followup_status', 3)->get();
+        $pegawai = User::role('pegawai')->orderBy('username')->get(['id','username']);
+        $laporan = Laporan::latest()->whereNull('is_deleted')->get(); 
+
+        // $skp = SKP::whereNull('is_deleted')->where('created_by', Auth::user()->nip)->get();
+        return view('pegawai/tindaklanjut/tindaklanjut', compact('tl','laporan','pegawai'));
+    }
+
+    
+    public function updateTL (Request $request, $id){
+        
+        $validator = Validator::make($request->all(), [
+            'assign_to' => 'required',
         ]);
 
-        $user = User::where('nip', $employee->nip)->OrWhere('id', $employee->user_id)->first();
-        $user->update([
-            'name' => $request->name,
-            'nip' => $request->nip,
-        ]);
-
-        $atasan = User::where('nip', $request->nip_atasan)->first();
-        if($atasan->hasRole('pegawai')){
-            $atasan->syncRoles(['atasan']);
-            $atasan->update([
-                'is_atasan' => 1,
-                'updated_at' => Carbon::now(),
-            ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
+        
+       $tindakLanjut =  TindakLanjut::findOrFail($id);
+
+        $data = [
+            'assign_to'  => $request->assign_to,
+            'followup_status'   => 4,
+        ];
+
+
+    if ($request->hasFile('tl_document')) {
+        $file     = $request->file('tl_document');
+        $original = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $ext      = $file->getClientOriginalExtension();
+        $nameFile = Str::slug($original) . '-' . now()->format('YmdHis') . '.' . $ext;
+
+        // Simpan ke storage/app/public/tindaklanjut/...
+        $path = $file->storeAs('tindaklanjut', $nameFile, 'public');
+
+        // Hapus file lama jika ada
+        if ($tindakLanjut->tl_document && Storage::disk('public')->exists($tindakLanjut->tl_document)) {
+            Storage::disk('public')->delete($tindakLanjut->tl_document);
+        }
+
+        // Set path baru ke kolom
+        $data['tl_document'] = $path;
+        }
+
+        $tindakLanjut->update($data);
+
+        // if (filled($tindakLanjut->phone_number_opd)) {
+        // try {
+        //     $this->sendTL($tindakLanjut->id);
+        //     return back()->with('success', 'Data tersimpan & notifikasi WA terkirim.');
+        // } catch (\Throwable $e) {
+        //     report($e);
+        //     return back()->with('warning', 'Data tersimpan, tetapi pengiriman WA gagal.');
+        // }
+        //  }
+
 
         return redirect()->back()->with('success' ,'Record updated successfully.');
 

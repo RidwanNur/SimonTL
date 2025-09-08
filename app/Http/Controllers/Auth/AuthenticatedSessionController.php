@@ -46,7 +46,7 @@ class AuthenticatedSessionController extends Controller
                     if ($user->hasRole('admin')) {
                         Auth::login($user);
                         return redirect()->route('dashboard')->with('success','Welcome back! '.$user->username);
-                    } elseif ($user->hasRole('inspektorat')) {
+                    } elseif ($user->hasRole('opd')) {
                         Auth::login($user);
                         return redirect()->route('atasan.dashboard')->with('success','Welcome back! '.$user->username);
                     } elseif ($user->hasRole('pegawai')) {
